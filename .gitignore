@@ -1,0 +1,22 @@
+# Backend
+Backend/target/
+Backend/.idea/
+Backend/.classpath
+Backend/.project
+Backend/.settings/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+
+# Logs
+*.log
+
+# Docker
+*.pid
+
+# System files
+.DS_Store
+Thumbs.db
