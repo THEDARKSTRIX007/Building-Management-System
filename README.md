@@ -60,6 +60,42 @@ Project/
 yaml
 Copy code
 
+🐳 Docker Setup
+✔ Build & Run (Docker Compose)
+In the project root:
+
+bash
+Copy code
+docker compose up --build
+Services:
+
+Service	Port	Description
+backend	8080	Spring Boot API
+frontend	3000	Next.js Web UI
+
+Frontend automatically connects using:
+
+ini
+Copy code
+NEXT_PUBLIC_BACKEND_URL=http://backend:8080
+▶️ Running Locally (Without Docker)
+Backend
+bash
+Copy code
+cd Backend
+./mvnw spring-boot:run
+Backend:
+http://localhost:8080/api/building
+
+Frontend
+bash
+Copy code
+cd frontend
+npm install
+npm run dev
+Frontend:
+http://localhost:3000
+
 ---
 
 # 🔗 API Endpoints
@@ -101,38 +137,4 @@ Update room details.
 DELETE /api/building/rooms/{id}
 Delete a room.
 
-🐳 Docker Setup
-✔ Build & Run (Docker Compose)
-In the project root:
 
-bash
-Copy code
-docker compose up --build
-Services:
-
-Service	Port	Description
-backend	8080	Spring Boot API
-frontend	3000	Next.js Web UI
-
-Frontend automatically connects using:
-
-ini
-Copy code
-NEXT_PUBLIC_BACKEND_URL=http://backend:8080
-▶️ Running Locally (Without Docker)
-Backend
-bash
-Copy code
-cd Backend
-./mvnw spring-boot:run
-Backend:
-http://localhost:8080/api/building
-
-Frontend
-bash
-Copy code
-cd frontend
-npm install
-npm run dev
-Frontend:
-http://localhost:3000
