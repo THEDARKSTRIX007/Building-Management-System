@@ -62,6 +62,15 @@ Project/
 │
 └── docker-compose.yml # Full multi-container setup (Includes PostgreSQL service)
 
+# ✅ Prerequisites
+
+Before running the application, ensure you have the following installed on your machine:
+
+* **Docker:** (v20.10+ recommended) - [Download Docker](https://www.docker.com/products/docker-desktop)
+* **Git:** To clone the repository.
+
+**Note:** You do **not** need to install Java, Maven, Node.js, or PostgreSQL locally. These are all handled automatically within the Docker containers.
+
 # 🐳 Deployment Instructions
 
 ### 1. Build and Run (Recommended)
