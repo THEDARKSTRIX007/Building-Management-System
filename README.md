@@ -57,5 +57,5 @@ Navigate to the root directory of the project and run the following command. Doc
 docker compose up --build
 
 Access the ApplicationOnce the services are running:
-ServiceAddressWeb UI (Frontend)http://localhost:3000API 
-(Backend)http://localhost:8080/api/building
+ServiceAddressWeb UI (Frontend)http://localhost:3000 
+(Backend) http://localhost:8080/api/building
