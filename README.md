@@ -43,10 +43,24 @@ The frontend provides a modern, responsive interface for management and monitori
 
 # 🏗️ Project Architecture
 
-```bash
-Project/ │ ├── Backend/ # Spring Boot application │ ├── src/main/java/com/building/backend/ │ │ ├── controller/ # BuildingController │ │ ├── model/ # Room, Apartment, CommonRoom, BuildingSettings │ │ ├── service/ # BuildingService (Contains @Scheduled logic and control rules) │ │ └── BackendApplication.java (@EnableScheduling) │ ├── Dockerfile │ └── pom.xml │ ├── frontend/ # Next.js 14 application │ ├── app/ # App Router pages │ ├── components/ # AddRoomForm, EditRoomModal, etc. │ ├── lib/api.ts # API wrapper with empty body handling │ ├── Dockerfile │ └── package.json │ └── docker-compose.yml # Full multi-container setup (Includes PostgreSQL service)
-```
----
+Project/
+├── Backend/ 
+│   ├── src/main/java/com/building/backend/
+│   │   ├── controller/ # BuildingController
+│   │   ├── model/ # Room, Apartment, CommonRoom, BuildingSettings
+│   │   ├── service/ # BuildingService (Contains @Scheduled logic and control rules)
+│   │   └── BackendApplication.java (@EnableScheduling)
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── frontend/ # Next.js 14 application
+│   ├── app/ # App Router pages
+│   ├── components/ # AddRoomForm, EditRoomModal, etc.
+│   ├── lib/api.ts # API wrapper with empty body handling
+│   ├── Dockerfile
+│   └── package.json
+│
+└── docker-compose.yml # Full multi-container setup (Includes PostgreSQL service)
 
 # 🐳 Deployment Instructions
 
