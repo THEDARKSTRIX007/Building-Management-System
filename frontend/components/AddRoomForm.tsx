@@ -4,14 +4,26 @@ import { useState } from "react";
 import { addRoom } from "@/lib/api";
 import toast from "react-hot-toast";
 
-export default function AddRoomForm({ refresh }: any) {
+interface AddRoomFormProps {
+  refresh: () => void;
+}
+
+interface RoomCreateBody {
+  id: string;
+  temperature: number;
+  type: "Apartment" | "CommonRoom";
+  ownerName?: string;
+  commonType?: string;
+}
+
+export default function AddRoomForm({ refresh }: AddRoomFormProps) {
   const [id, setId] = useState("");
   const [temperature, setTemperature] = useState<number | string>(20);
-  const [type, setType] = useState("Apartment");
+  const [type, setType] = useState<"Apartment" | "CommonRoom">("Apartment");
   const [ownerName, setOwnerName] = useState("");
-  const [commonType, setCommonType] = useState("Gym");
+  const [commonType, setCommonType] = useState<"Gym" | "Library" | "Laundry">("Gym");
 
-  const isValid = () => {
+  const isValid = (): boolean => {
     if (!id.trim()) return false;
     if (temperature === "" || isNaN(Number(temperature))) return false;
     if (type === "Apartment" && !ownerName.trim()) return false;
@@ -24,23 +36,28 @@ export default function AddRoomForm({ refresh }: any) {
       return;
     }
 
-    const body: any = {
+    const body: RoomCreateBody = {
       id,
       temperature: Number(temperature),
       type,
     };
 
-    if (type === "Apartment") body.ownerName = ownerName;
-    else body.commonType = commonType;
+    if (type === "Apartment") {
+      body.ownerName = ownerName;
+    } else {
+      body.commonType = commonType;
+    }
 
     await addRoom(body);
     toast.success("Room added!");
 
-    refresh();
+    refresh(); 
 
     setId("");
     setOwnerName("");
     setTemperature(20);
+    setType("Apartment");
+    setCommonType("Gym");
   }
 
   return (
@@ -64,7 +81,7 @@ export default function AddRoomForm({ refresh }: any) {
       <select
         className="border border-gray-600 p-3 w-full rounded bg-[#0d1117]"
         value={type}
-        onChange={(e) => setType(e.target.value)}
+        onChange={(e) => setType(e.target.value as "Apartment" | "CommonRoom")}
       >
         <option value="Apartment">Apartment</option>
         <option value="CommonRoom">Common Room</option>
@@ -81,7 +98,7 @@ export default function AddRoomForm({ refresh }: any) {
         <select
           className="border border-gray-600 p-3 w-full rounded bg-[#0d1117]"
           value={commonType}
-          onChange={(e) => setCommonType(e.target.value)}
+          onChange={(e) => setCommonType(e.target.value as "Gym" | "Library" | "Laundry")}
         >
           <option value="Gym">Gym</option>
           <option value="Library">Library</option>

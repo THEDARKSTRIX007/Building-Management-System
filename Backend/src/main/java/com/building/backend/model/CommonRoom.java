@@ -1,16 +1,25 @@
 package com.building.backend.model;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("CommonRoom")
 public class CommonRoom extends Room {
 
-    public enum CommonType { Gym, Library, Laundry }
+    private String commonType;
 
-    private CommonType type;
+    public CommonRoom() {}
 
-    public CommonRoom(String id, double temperature, CommonType type) {
+    public CommonRoom(String id, double temperature, String commonType) {
         super(id, temperature);
-        this.type = type;
+        this.commonType = commonType;
     }
 
-    public CommonType getType() { return type; }
-    public void setType(CommonType type) { this.type = type; }
+    public String getCommonType() { return commonType; }
+    public void setCommonType(String t) { this.commonType = t; }
+
+    public String getType() {
+        return "CommonRoom";
+    }
 }

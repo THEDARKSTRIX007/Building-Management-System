@@ -1,81 +1,94 @@
 package com.building.backend.controller;
 
-import com.building.backend.model.*;
+import com.building.backend.model.Apartment;
+import com.building.backend.model.BuildingSettings;
+import com.building.backend.model.CommonRoom;
+import com.building.backend.model.Room;
 import com.building.backend.service.BuildingService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/building")
-@CrossOrigin("*")
+@RequestMapping("/api")
 public class BuildingController {
 
-    private final BuildingService service;
+    private final BuildingService buildingService;
 
-    public BuildingController(BuildingService service) {
-        this.service = service;
+    public BuildingController(BuildingService buildingService) {
+        this.buildingService = buildingService;
     }
 
-    // GET building
-    @GetMapping
-    public Building getBuilding() {
-        return service.getBuilding();
+    @GetMapping(value = "/building", produces = "application/json")
+    public ResponseEntity<Map<String, Object>> getBuilding() {
+        BuildingSettings settings = buildingService.getBuildingSettings();
+        List<Room> rooms = buildingService.getAllRooms();
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("requestedTemperature", settings.getRequestedTemperature());
+        resp.put("rooms", rooms);
+        return ResponseEntity.ok(resp);
     }
 
-    // Update building temperature
-    @PostMapping("/temperature")
-    public Building updateTemperature(@RequestBody TempRequest req) {
-        service.setRequestedTemperature(req.requestedTemperature);
-        return service.getBuilding();
+    @PostMapping("/building/temperature")
+    public ResponseEntity<?> setRequestedTemperature(@RequestBody Map<String, Object> body) {
+        Object v = body.get("requestedTemperature");
+        if (v instanceof Number) {
+            double t = ((Number) v).doubleValue();
+            buildingService.setRequestedTemperature(t);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().body("requestedTemperature missing or invalid");
     }
 
-    static class TempRequest {
-        public double requestedTemperature;
-    }
+    @PostMapping("/building/rooms")
+    public ResponseEntity<?> addRoom(@RequestBody BuildingService.RoomCreateRequest req) {
 
-    // ADD ROOM
-    @PostMapping("/rooms")
-    public Building addRoom(@RequestBody RoomRequest req) {
-
-        if ("Apartment".equals(req.type)) {
-            Apartment apt = new Apartment(req.id, req.temperature, req.ownerName);
-            service.addRoom(apt);
-
-        } else if ("CommonRoom".equals(req.type)) {
-            CommonRoom.CommonType ct = CommonRoom.CommonType.valueOf(req.commonType);
-            CommonRoom cr = new CommonRoom(req.id, req.temperature, ct);
-            service.addRoom(cr);
+        if (req.id == null || req.id.isBlank()) {
+            return ResponseEntity.badRequest().body("id is required");
         }
 
-        return service.getBuilding();
+        Room r;
+
+        if ("CommonRoom".equalsIgnoreCase(req.type)) {
+            r = new CommonRoom(
+                    req.id,
+                    req.temperature == null ? 20.0 : req.temperature,
+                    req.commonType == null ? "General" : req.commonType
+            );
+        } else {
+            r = new Apartment(
+                    req.id,
+                    req.temperature == null ? 20.0 : req.temperature,
+                    req.ownerName == null ? "Unknown" : req.ownerName
+            );
+        }
+
+        buildingService.addRoom(r);
+        return ResponseEntity.ok().build();
     }
 
-    // DELETE ROOM
-    @DeleteMapping("/rooms/{id}")
-    public Building deleteRoom(@PathVariable String id) {
-        service.removeRoom(id);
-        return service.getBuilding();
+
+    @DeleteMapping("/building/rooms/{id}")
+    public ResponseEntity<?> deleteRoom(@PathVariable String id) {
+        buildingService.removeRoom(id);
+        return ResponseEntity.ok().build();
     }
 
-    // UPDATE ROOM (EDIT)
-    @PutMapping("/rooms/{id}")
-    public Building updateRoom(@PathVariable String id, @RequestBody RoomUpdateRequest req) {
-        service.updateRoom(id, req);
-        return service.getBuilding();
-    }
+    @PutMapping("/building/rooms/{id}")
+    public ResponseEntity<?> updateRoom(@PathVariable String id, @RequestBody Map<String, Object> body) {
+        BuildingService.RoomUpdateRequest req = new BuildingService.RoomUpdateRequest();
+        if (body.containsKey("temperature") && body.get("temperature") != null) {
+            req.temperature = ((Number) body.get("temperature")).doubleValue();
+        }
+        if (body.containsKey("ownerName")) req.ownerName = (String) body.get("ownerName");
+        if (body.containsKey("commonType")) req.commonType = (String) body.get("commonType");
 
-    // DTOs
-    public static class RoomRequest {
-        public String id;
-        public double temperature;
-        public String type;
-        public String ownerName;
-        public String commonType;
-    }
-
-    public static class RoomUpdateRequest {
-        public double temperature;
-        public String ownerName;
-        public String commonType;
-        public String type; // Apartment or CommonRoom
+        Room updated = buildingService.updateRoom(id, req);
+        if (updated == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().build();
     }
 }

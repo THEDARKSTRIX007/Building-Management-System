@@ -1,28 +1,80 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import AddRoomForm from "@/components/AddRoomForm";
 import EditRoomModal from "@/components/EditRoomModal";
 import toast from "react-hot-toast";
 import { getBuilding, updateTemperature, deleteRoom } from "@/lib/api";
 
+interface Room {
+    id: string;
+    temperature: number;
+    heatingEnabled: boolean;
+    coolingEnabled: boolean;
+    ownerName?: string; 
+    commonType?: string; 
+    type: 'Apartment' | 'CommonRoom';
+}
+
+interface BuildingData {
+    requestedTemperature: number;
+    rooms: Room[];
+}
+
+const REFRESH_INTERVAL_MS = 5000;
+
 export default function Home() {
-  const [building, setBuilding] = useState<any>(null);
+  const [building, setBuilding] = useState<BuildingData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [editRoom, setEditRoom] = useState<any>(null);
+  const [editRoom, setEditRoom] = useState<Room | null>(null); 
 
   const [search, setSearch] = useState("");
 
+  // === MOVED SEARCH FILTERING LOGIC TO THE TOP ===
+  const filteredRooms = useMemo(() => {
+    // Only filter if building data exists
+    if (!building?.rooms) return [];
+    
+    const key = search.toLowerCase().trim();
+    
+    if (key === "") {
+        return building.rooms;
+    }
+
+    return building.rooms.filter((room: Room) => {
+        return (
+            room.id.toLowerCase().includes(key) ||
+            (room.ownerName && room.ownerName.toLowerCase().includes(key)) ||
+            (room.commonType && room.commonType.toLowerCase().includes(key))
+        );
+    });
+  }, [building, search]);
+  // ===============================================
+
   async function load() {
-    setLoading(true);
-    const data = await getBuilding();
-    setBuilding(data);
-    setLoading(false);
+    if (!building) setLoading(true); 
+    try {
+      const data: BuildingData = await getBuilding();
+      setBuilding(data);
+    } catch (error) {
+      console.error("Failed to fetch building data:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      load();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [building]);
+
 
   if (!building || loading) {
     return (
@@ -31,20 +83,19 @@ export default function Home() {
       </div>
     );
   }
-
-  // SIMPLE SEARCH FILTER (Room ID OR Owner Name)
-  const filteredRooms = building.rooms.filter((room: any) => {
-    const key = search.toLowerCase();
-    return (
-      room.id.toLowerCase().includes(key) ||
-      room.ownerName?.toLowerCase().includes(key)
-    );
-  });
+  
+  const getRoomPrefix = (room: Room): string => {
+    if (room.type === 'Apartment') {
+      return 'Room';
+    } else if (room.commonType) {
+      return room.commonType;
+    }
+    return room.type;
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-12">
 
-      {/* BUILDING STATUS */}
       <div className="border border-gray-700 p-6 rounded-xl bg-[#161b22] shadow-md w-full">
         <h1 className="text-2xl font-bold">Building Status</h1>
 
@@ -78,24 +129,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* GRID: ADD ROOM + SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
 
         <AddRoomForm refresh={load} />
 
-        {/* SUMMARY */}
         <div className="border border-gray-700 p-6 rounded-xl bg-[#161b22] shadow-md">
           <h2 className="text-xl font-bold">Summary</h2>
 
           <p>Total Rooms: {building.rooms.length}</p>
-          <p>Heating: {building.rooms.filter((r: any) => r.heatingEnabled).length}</p>
-          <p>Cooling: {building.rooms.filter((r: any) => r.coolingEnabled).length}</p>
+          <p>Heating: {building.rooms.filter((r: Room) => r.heatingEnabled).length}</p> 
+          <p>Cooling: {building.rooms.filter((r: Room) => r.coolingEnabled).length}</p> 
         </div>
       </div>
 
-      {/* ROOMS SECTION */}
       <div>
-        {/* Title + Search Bar */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Rooms</h2>
 
@@ -108,18 +155,20 @@ export default function Home() {
           />
         </div>
 
-        {/* ROOM CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredRooms.map((room: any) => (
+          {filteredRooms.map((room: Room) => (
             <div
               key={room.id}
               className="border border-gray-700 p-5 rounded-xl bg-[#161b22] shadow hover:shadow-xl transition"
             >
-              <h3 className="text-xl font-semibold">{room.id}</h3>
-              <p>Temperature: {room.temperature}°C</p>
+              <h3 className="text-xl font-semibold">
+                {getRoomPrefix(room)} - {room.id}
+              </h3>
+              
+              <p>Temperature: {room.temperature.toFixed(2)}°C</p>
 
               {room.ownerName && <p>Owner: {room.ownerName}</p>}
-              {room.type && <p>Type: {room.type}</p>}
+              {room.commonType && <p>Type: {room.commonType}</p>}
 
               <p
                 className={

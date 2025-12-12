@@ -1,25 +1,24 @@
-# -------- BUILD STAGE --------
 FROM node:20 AS builder
 WORKDIR /app
 
-# Install dependencies
+ARG NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NODE_ENV=production
+
 COPY package.json package-lock.json* yarn.lock* ./
 RUN npm install
 
-# Copy the rest of the app
 COPY . .
 
-# Build Next.js for production
 RUN npm run build
 
-# -------- RUN STAGE --------
 FROM node:20
 WORKDIR /app
 
-# Copy built files from builder
 COPY --from=builder /app ./
 
-EXPOSE 3000
+ENV NODE_ENV=production
 
-# Start Next.js in production mode
+EXPOSE 3000
 CMD ["npm", "start"]
+

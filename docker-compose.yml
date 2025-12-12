@@ -1,25 +1,48 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:16
+    container_name: building-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: building_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - building-net
+
   backend:
     build: ./Backend
     container_name: building-backend
     ports:
       - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/building_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+    depends_on:
+      - postgres
     networks:
       - building-net
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # **UPDATED LINE:** Using localhost so the browser can reach the backend
+        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080"
     container_name: building-frontend
     ports:
       - "3000:3000"
-    environment:
-      NEXT_PUBLIC_BACKEND_URL: "http://backend:8080"
     depends_on:
       - backend
     networks:
       - building-net
+
+volumes:
+  pgdata:
 
 networks:
   building-net:
