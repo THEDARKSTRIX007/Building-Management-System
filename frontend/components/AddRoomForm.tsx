@@ -68,7 +68,7 @@ export default function AddRoomForm({ refresh }: AddRoomFormProps) {
         className="border border-gray-600 p-3 w-full rounded bg-[#0d1117]"
         placeholder="Room ID"
         value={id}
-        onChange={(e) => setId(e.target.value)}
+        onChange={(e) => setId(e.target.value.replace(/[^0-9]/g, ""))}
       />
 
       <input

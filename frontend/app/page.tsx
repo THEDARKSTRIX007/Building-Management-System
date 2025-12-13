@@ -30,9 +30,7 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
 
-  // === MOVED SEARCH FILTERING LOGIC TO THE TOP ===
   const filteredRooms = useMemo(() => {
-    // Only filter if building data exists
     if (!building?.rooms) return [];
     
     const key = search.toLowerCase().trim();
@@ -49,7 +47,6 @@ export default function Home() {
         );
     });
   }, [building, search]);
-  // ===============================================
 
   async function load() {
     if (!building) setLoading(true); 
