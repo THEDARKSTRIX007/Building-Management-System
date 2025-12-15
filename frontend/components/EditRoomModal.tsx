@@ -7,13 +7,13 @@ import toast from "react-hot-toast";
 export default function EditRoomModal({ room, close, refresh }: any) {
   const [temperature, setTemperature] = useState(room.temperature);
   const [ownerName, setOwnerName] = useState(room.ownerName || "");
-  const [commonType, setCommonType] = useState(room.type === "CommonRoom" ? room.type : "Gym");
+  const [commonType, setCommonType] = useState(room.commonType || "Gym");
 
   async function handleSave() {
     await updateRoom(room.id, {
       temperature,
-      ownerName,
-      commonType,
+      ownerName: room.type === "Apartment" ? ownerName : undefined,
+      commonType: room.type === "CommonRoom" ? commonType : undefined,
       type: room.type,
     });
 
